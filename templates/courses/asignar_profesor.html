@@ -1,0 +1,56 @@
+{% extends "base/base.html" %}
+{% block title %}Asignar Profesor a Horario{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'dashboard' %}" class="text-xs text-slate-500 hover:text-brand-600">← Volver al Dashboard</a>
+    <h1 class="text-xl font-bold text-slate-800 mt-2">Asignar Profesor a Horario</h1>
+    <p class="text-slate-500 text-sm mt-1">Haz clic en "Editar" para reasignar el profesor de cualquier horario.</p>
+</div>
+
+<div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-slate-50 border-b border-slate-200">
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Curso</th>
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Día</th>
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Horario</th>
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Profesor actual</th>
+                    <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Acción</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for horario in horarios %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-5 py-3 font-medium text-slate-800">{{ horario.curso.nombre }}</td>
+                    <td class="px-5 py-3 text-slate-600">{{ horario.get_dia_semana_display }}</td>
+                    <td class="px-5 py-3 text-slate-600 font-mono text-xs">
+                        {{ horario.hora_inicio|time:"H:i" }} – {{ horario.hora_fin|time:"H:i" }}
+                    </td>
+                    <td class="px-5 py-3">
+                        {% if horario.profesor %}
+                        <span class="text-slate-700">{{ horario.profesor_nombre }}</span>
+                        {% else %}
+                        <span class="text-slate-400 italic">Sin asignar</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-5 py-3">
+                        <a href="{% url 'editar_horario' horario.pk %}"
+                           class="text-xs font-medium text-brand-600 hover:text-brand-700 transition-colors">
+                            Editar / Reasignar →
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-5 py-10 text-center text-slate-400">
+                        No hay horarios creados. <a href="{% url 'crear_horario' %}" class="text-brand-600 hover:underline">Crear uno</a>.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

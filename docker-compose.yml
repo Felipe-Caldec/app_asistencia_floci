@@ -1,0 +1,35 @@
+services:
+  floci:
+    image: floci/floci:latest
+    ports:
+      - "4566:4566"
+    volumes:
+      - floci-data:/var/lib/floci
+      - /var/run/docker.sock:/var/run/docker.sock  # necesario para RDS y Lambda
+    environment:
+      - FLOCI_LOG_LEVEL=inf
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: asistencia_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - floci
+    env_file:
+      - .env
+
+volumes:
+  floci-data:

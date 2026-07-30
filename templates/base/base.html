@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Control de Asistencia{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50:  '#f0f4ff',
+                            100: '#e0eaff',
+                            500: '#3b5bdb',
+                            600: '#2f4ac7',
+                            700: '#253dab',
+                            900: '#1a2d7a',
+                        },
+                        slate: {
+                            850: '#1a2232',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Input estilizado globalmente */
+        .input-field {
+            @apply w-full px-3 py-2 border border-slate-300 rounded-lg text-sm
+                   focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent
+                   bg-white transition-all;
+        }
+        /* Animación sutil para las cards */
+        .card-hover {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(59, 91, 219, 0.15);
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    {% if user.is_authenticated %}
+    <!-- Barra de navegación -->
+    <nav class="bg-brand-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo / Nombre del sistema -->
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 group">
+                    <div class="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center font-bold text-sm group-hover:bg-brand-600 transition-colors">
+                        CA
+                    </div>
+                    <span class="font-semibold text-sm tracking-wide hidden sm:block">Control de Asistencia</span>
+                </a>
+
+                <!-- Navegación admin -->
+                {% if user.is_superuser %}
+                <div class="hidden md:flex items-center gap-1">
+                    <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-200 hover:bg-brand-700 hover:text-white transition-colors">Dashboard</a>
+                    <a href="{% url 'reporte_asistencia' %}" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-200 hover:bg-brand-700 hover:text-white transition-colors">Reportes</a>
+                    <a href="{% url 'exportar_csv' %}" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-200 hover:bg-brand-700 hover:text-white transition-colors">Exportar</a>
+                    <a href="{% url 'lista_profesores' %}" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-200 hover:bg-brand-700 hover:text-white transition-colors">Profesores</a>
+                    <a href="{% url 'lista_alumnos' %}" class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-200 hover:bg-brand-700 hover:text-white transition-colors">Alumnos</a>
+                </div>
+                {% endif %}
+
+                <!-- Usuario y logout -->
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs font-medium text-white">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-xs text-brand-100">{% if user.is_superuser %}Administrador{% else %}Profesor{% endif %}</p>
+                    </div>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-medium rounded-md transition-colors">
+                            Cerrar sesión
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Mensajes flash -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 space-y-2">
+        {% for message in messages %}
+        <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium
+            {% if message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200
+            {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+            {% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200
+            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Contenido principal -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 border-t border-slate-200 py-6 text-center text-xs text-slate-400">
+        Control de Asistencia &copy; {% now "Y" %}
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

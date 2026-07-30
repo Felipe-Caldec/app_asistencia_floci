@@ -1,0 +1,151 @@
+{% extends "base/base.html" %}
+{% block title %}Asignar Alumno a Curso{% endblock %}
+
+{% block extra_head %}
+<style>
+  select, input[type="text"] {
+    width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e2e8f0;
+    border-radius: 0.625rem; font-size: 0.875rem; background-color: white;
+    color: #334155; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  select:focus, input:focus { border-color: #3b5bdb; box-shadow: 0 0 0 3px rgba(59,91,219,0.15); }
+  select:disabled { background-color: #f8fafc; color: #94a3b8; cursor: not-allowed; }
+  label { display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 0.5rem; }
+  .errorlist { color: #dc2626; font-size: 0.75rem; list-style: none; padding: 0; margin-top: 0.25rem; }
+  .spinner { display: none; width: 16px; height: 16px; border: 2px solid #e2e8f0; border-top-color: #3b5bdb; border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <div class="mb-6">
+    <a href="{% url 'dashboard' %}" class="text-xs text-slate-500 hover:text-brand-600 transition-colors">← Volver al Dashboard</a>
+    <h1 class="text-xl font-bold text-slate-800 mt-2">Asignar Alumno a Horario</h1>
+    <p class="text-slate-500 text-sm mt-1">Selecciona primero el curso para filtrar los horarios disponibles.</p>
+  </div>
+
+  <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+    <form method="post" id="form-asignacion">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
+        <p class="text-sm text-red-700">{{ form.non_field_errors }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Alumno -->
+      <div class="mb-5">
+        <label for="{{ form.alumno.id_for_label }}">
+          Alumno <span class="text-red-500">*</span>
+        </label>
+        {{ form.alumno }}
+        {% if form.alumno.errors %}
+        <ul class="errorlist">{% for e in form.alumno.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+
+      <!-- Curso — dispara el filtrado de horarios -->
+      <div class="mb-5">
+        <label for="id_curso_selector">
+          Curso <span class="text-red-500">*</span>
+        </label>
+        <select id="id_curso_selector" name="curso_ui">
+          <option value="">— Selecciona un curso —</option>
+          {% for curso in cursos %}
+          <option value="{{ curso.pk }}">{{ curso.nombre }}</option>
+          {% endfor %}
+        </select>
+        <!-- Campo oculto real que se envía con el form -->
+        <input type="hidden" name="curso" id="id_curso_hidden">
+        {% if form.curso.errors %}
+        <ul class="errorlist">{% for e in form.curso.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+
+      <!-- Horario — se llena dinámicamente -->
+      <div class="mb-8">
+        <label for="{{ form.horario.id_for_label }}">
+          Horario <span class="text-red-500">*</span>
+          <span class="spinner ml-2" id="spinner" style="display:inline-block; vertical-align:middle;"></span>
+        </label>
+        <select id="id_horario" name="horario" disabled>
+          <option value="">— Primero selecciona un curso —</option>
+        </select>
+        {% if form.horario.errors %}
+        <ul class="errorlist">{% for e in form.horario.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+        <p class="text-xs text-slate-400 mt-1.5" id="horario-hint">
+          Los horarios disponibles aparecerán al seleccionar un curso.
+        </p>
+      </div>
+
+      <div class="flex gap-3 pt-4 border-t border-slate-100">
+        <button type="submit"
+                class="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-xl transition-colors">
+          Guardar asignación
+        </button>
+        <a href="{% url 'dashboard' %}"
+           class="px-6 py-2.5 border border-slate-300 hover:border-slate-400 text-slate-700 text-sm font-medium rounded-xl transition-colors">
+          Cancelar
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const cursoBusqueda = document.getElementById('id_curso_selector');
+const cursoHidden   = document.getElementById('id_curso_hidden');
+const horarioSel    = document.getElementById('id_horario');
+const spinner       = document.getElementById('spinner');
+const hint          = document.getElementById('horario-hint');
+
+cursoBusqueda.addEventListener('change', async function () {
+  const cursoId = this.value;
+
+  // Resetear horario
+  horarioSel.innerHTML = '<option value="">— Cargando horarios... —</option>';
+  horarioSel.disabled = true;
+  cursoHidden.value = cursoId;
+
+  if (!cursoId) {
+    horarioSel.innerHTML = '<option value="">— Primero selecciona un curso —</option>';
+    hint.textContent = 'Los horarios disponibles aparecerán al seleccionar un curso.';
+    return;
+  }
+
+  spinner.style.display = 'inline-block';
+
+  try {
+    const resp = await fetch(`/api/horarios/${cursoId}/`);
+    const data = await resp.json();
+
+    horarioSel.innerHTML = '<option value="">— Selecciona un horario —</option>';
+
+    if (data.horarios.length === 0) {
+      horarioSel.innerHTML = '<option value="">Sin horarios activos para este curso</option>';
+      hint.textContent = 'Este curso no tiene horarios configurados aún.';
+    } else {
+      data.horarios.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h.id;
+        opt.textContent = h.label;
+        horarioSel.appendChild(opt);
+      });
+      horarioSel.disabled = false;
+      hint.textContent = `${data.horarios.length} horario${data.horarios.length !== 1 ? 's' : ''} disponible${data.horarios.length !== 1 ? 's' : ''}.`;
+    }
+  } catch (err) {
+    horarioSel.innerHTML = '<option value="">Error al cargar horarios</option>';
+    hint.textContent = 'Ocurrió un error. Recarga la página e intenta nuevamente.';
+    console.error(err);
+  } finally {
+    spinner.style.display = 'none';
+  }
+});
+</script>
+{% endblock %}

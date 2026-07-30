@@ -1,0 +1,95 @@
+{% extends "base/base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    input[type="text"], input[type="email"], input[type="password"], input[type="time"],
+    input[type="date"], select, textarea {
+        width: 100%; padding: 0.625rem 0.875rem; border: 1px solid #e2e8f0;
+        border-radius: 0.625rem; font-size: 0.875rem; background-color: white;
+        color: #334155; outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+        border-color: #3b5bdb; box-shadow: 0 0 0 3px rgba(59,91,219,0.15);
+    }
+    .errorlist { color: #dc2626; font-size: 0.75rem; list-style: none; padding: 0; margin-top: 0.25rem; }
+    label { display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'lista_alumnos' %}" class="text-xs text-slate-500 hover:text-brand-600 transition-colors">← Volver a Alumnos</a>
+        <h1 class="text-xl font-bold text-slate-800 mt-2">{{ titulo }}</h1>
+    </div>
+
+    <!-- Carga masiva CSV -->
+    <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-6">
+        <div class="flex items-start gap-4 flex-wrap">
+            <div class="flex-1 min-w-[200px]">
+                <h2 class="text-sm font-semibold text-emerald-800 mb-1">📂 Carga masiva desde CSV</h2>
+                <p class="text-xs text-emerald-700 mb-2">
+                    Columnas <strong>obligatorias</strong>:
+                    <code class="bg-emerald-100 px-1 rounded">nombre</code>
+                    <code class="bg-emerald-100 px-1 rounded">apellido</code>
+                    <code class="bg-emerald-100 px-1 rounded">rut</code>
+                </p>
+                <p class="text-xs text-emerald-700 mb-1">
+                    Columnas <strong>opcionales</strong>:
+                    <code class="bg-emerald-100 px-1 rounded">genero</code> (M/F/O)
+                    <code class="bg-emerald-100 px-1 rounded">correo</code>
+                    <code class="bg-emerald-100 px-1 rounded">telefono</code>
+                </p>
+                <p class="text-xs text-emerald-600">Los alumnos con RUT duplicado serán ignorados.</p>
+            </div>
+            <form method="post" action="{% url 'carga_csv_alumnos' %}" enctype="multipart/form-data"
+                  class="flex items-center gap-2 flex-shrink-0">
+                {% csrf_token %}
+                <input type="file" name="archivo_csv" accept=".csv"
+                       class="text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:border-0 file:rounded-lg file:text-xs file:font-semibold file:bg-white file:text-emerald-700 file:cursor-pointer hover:file:bg-emerald-50">
+                <button type="submit"
+                        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap">
+                    ↑ Cargar CSV
+                </button>
+            </form>
+        </div>
+        <!-- Ejemplo descargable inline -->
+        <details class="mt-3">
+            <summary class="text-xs text-emerald-700 cursor-pointer font-medium">Ver ejemplo de formato CSV</summary>
+            <pre class="mt-2 text-xs bg-white border border-emerald-200 rounded-lg p-3 overflow-x-auto text-slate-700">nombre,apellido,rut,genero,correo,telefono
+Juan,Pérez,12345678-9,M,juan@mail.com,+56912345678
+María,González,98765432-1,F,,
+Carlos,López,11222333-4,M,carlos@mail.com,</pre>
+        </details>
+    </div>
+
+    <!-- Formulario manual -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm">
+        <h2 class="text-sm font-semibold text-slate-600 mb-5">O crea un alumno manualmente</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
+                <p class="text-sm text-red-700">{{ form.non_field_errors }}</p>
+            </div>
+            {% endif %}
+            {% for field in form %}
+            <div class="mb-5">
+                <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}<ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                {% if field.help_text %}<p class="text-xs text-slate-400 mt-1">{{ field.help_text }}</p>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="flex gap-3 pt-4 border-t border-slate-100 mt-6">
+                <button type="submit" class="px-6 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-xl transition-colors">Guardar</button>
+                <a href="{% url 'lista_alumnos' %}" class="px-6 py-2.5 border border-slate-300 hover:border-slate-400 text-slate-700 text-sm font-medium rounded-xl transition-colors">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

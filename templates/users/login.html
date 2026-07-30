@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión — Control de Asistencia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md">
+        <!-- Logo / Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-14 h-14 bg-blue-600 rounded-2xl mb-4 shadow-lg shadow-blue-900/50">
+                <span class="text-white text-xl font-bold">CA</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white">Control de Asistencia</h1>
+            <p class="text-slate-400 text-sm mt-1">Ingresa tus credenciales para continuar</p>
+        </div>
+
+        <!-- Tarjeta de login -->
+        <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-8 shadow-2xl">
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="mb-5 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p class="text-sm text-red-400">{{ form.non_field_errors }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Username -->
+                <div class="mb-5">
+                    <label for="{{ form.username.id_for_label }}"
+                           class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        Usuario
+                    </label>
+                    <input
+                        type="text"
+                        name="{{ form.username.html_name }}"
+                        id="{{ form.username.id_for_label }}"
+                        autofocus
+                        class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-500
+                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Tu nombre de usuario"
+                    >
+                    {% if form.username.errors %}
+                    <p class="mt-1 text-xs text-red-400">{{ form.username.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
+                <div class="mb-7">
+                    <label for="{{ form.password.id_for_label }}"
+                           class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        Contraseña
+                    </label>
+                    <input
+                        type="password"
+                        name="{{ form.password.html_name }}"
+                        id="{{ form.password.id_for_label }}"
+                        class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-slate-500
+                               text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        placeholder="Tu contraseña"
+                    >
+                    {% if form.password.errors %}
+                    <p class="mt-1 text-xs text-red-400">{{ form.password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <button type="submit"
+                        class="w-full py-3 px-6 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm
+                               rounded-xl transition-all shadow-lg shadow-blue-900/40 active:scale-95">
+                    Ingresar al sistema
+                </button>
+            </form>
+        </div>
+
+        <p class="text-center text-xs text-slate-600 mt-6">
+            Sistema interno — acceso restringido
+        </p>
+    </div>
+
+</body>
+</html>

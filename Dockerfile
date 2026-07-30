@@ -16,4 +16,6 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["gunicorn", "asistencia_project.wsgi:application", "--workers", "3", "--bind", "0.0.0.0:8000", "--timeout", "120"]
+COPY start.sh .
+RUN chmod +x start.sh
+CMD ["./start.sh"]

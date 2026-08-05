@@ -4,13 +4,13 @@ settings.py — Configuración principal del proyecto de Control de Asistencia
 
 from pathlib import Path
 import os
-
+from decouple import config
 # ─────────────────────────────────────────────────────────────────────────────
 # Rutas base
 # ─────────────────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-reemplaza-esta-clave-en-produccion'
+SECRET_KEY = config('SECRET_KEY_LOCK')
 
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
@@ -79,11 +79,11 @@ WSGI_APPLICATION = 'asistencia_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'asistencia_db'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', '1234'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': config('DB_NAME'),
+        'USER': config('DB_USER'),
+        'PASSWORD': config('DB_PASSWORD'),
+        'HOST': config('DB_HOST'),
+        'PORT': config('DB_PORT'),
     }
 }
 
